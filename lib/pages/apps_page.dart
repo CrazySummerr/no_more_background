@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:no_more_background/components/about_this_app_button.dart';
 import 'package:no_more_background/components/app_tile.dart';
 import 'package:no_more_background/components/device_tile.dart';
+import 'package:no_more_background/components/profiles_dialog.dart';
 import 'package:no_more_background/data/adb_app.dart';
 import 'package:no_more_background/data/adb_device.dart';
 import 'package:no_more_background/data/constants.dart';
@@ -43,7 +44,7 @@ class AppsPage extends HookWidget {
       body: isScreenSmall
           ? Column(
               children: [
-                const _Headline(),
+                _Headline(deviceSerial: deviceSerial, permissionMap: permissionMap),
                 Expanded(
                   child: _AppsList(
                     apps: apps,
@@ -61,7 +62,7 @@ class AppsPage extends HookWidget {
                   margin: const .all(kYaruPagePadding),
                   padding: .zero,
                   headlinePadding: .zero,
-                  headline: const _Headline(),
+                  headline: _Headline(deviceSerial: deviceSerial, permissionMap: permissionMap),
                   child: _AppsList(
                     apps: apps,
                     deviceSerial: deviceSerial,
@@ -75,7 +76,10 @@ class AppsPage extends HookWidget {
 }
 
 class _Headline extends HookWidget {
-  const _Headline();
+  const _Headline({required this.deviceSerial, required this.permissionMap});
+
+  final AdbDeviceSerial deviceSerial;
+  final PermissionMap permissionMap;
 
   @override
   Widget build(BuildContext context) {
@@ -132,6 +136,15 @@ class _Headline extends HookWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: () => ProfilesDialog.show(
+                  context,
+                  deviceSerial: deviceSerial,
+                  permissionMap: permissionMap,
+                ),
+                tooltip: 'Profiles',
+                icon: const Icon(Symbols.switch_account),
               ),
               _RedDot(
                 child: IconButton(

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:no_more_background/data/adb_device.dart';
+import 'package:no_more_background/data/profile.dart';
 import 'package:no_more_background/data/reviewed_app.dart';
 import 'package:stow_plain/stow_plain.dart';
 
@@ -20,6 +21,13 @@ class Stows {
   final showSystemApps = PlainStow('showSystemApps', false);
   final showReviewedApps = PlainStow('showReviewedApps', true);
   final appFilter = PlainStow('appFilter', '', volatile: true);
+
+  final profiles = PlainStow.json(
+    'profiles',
+    <Profile>[],
+    fromJson: (json) =>
+        (json as List).map((e) => Profile.fromJson(e)).toList(),
+  );
 
   final useRoot = PlainStow('useRoot', false);
   final useFakeAdb = PlainStow(

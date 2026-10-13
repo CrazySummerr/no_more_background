@@ -10,6 +10,7 @@ import 'package:no_more_background/compute/root_shell_util.g.dart';
 import 'package:no_more_background/data/adb_app.dart';
 import 'package:no_more_background/data/adb_device.dart';
 import 'package:no_more_background/data/adb_permissions.dart';
+import 'package:no_more_background/data/profile.dart';
 import 'package:no_more_background/data/stows.dart';
 import 'package:shizuku_api/shizuku_api.dart';
 
@@ -259,6 +260,34 @@ abstract class Adb {
         deviceSerial,
         backgroundActivity == .unrestricted,
       ),
+    ]);
+    if (backgroundActivity == .reduced) {
+      // appops/deviceidle only block the app from *starting new* background
+      // work -- they don't kill services the app already has running. An
+      // app that was open (or already background-persisting) right before
+      // being restricted keeps its existing services alive indefinitely,
+      // so the restriction has no real effect until the app is relaunched.
+      // Force-stopping here makes the restriction take effect immediately.
+      await forceStop(deviceSerial, app);
+    }
+  }
+
+  /// Applies a saved [Profile]: sets each app it lists to its saved
+  /// [BackgroundActivity] (force-stopping restricted apps along the way,
+  /// via [setBackgroundActivity]). [apps] is the already-loaded app list
+  /// (e.g. from [getApps]), used to resolve package names to [AdbApp]s.
+  /// Package names in the profile that aren't found in [apps] (app
+  /// uninstalled since the profile was saved) are silently skipped.
+  static Future<void> applyProfile(
+    AdbDeviceSerial deviceSerial,
+    Profile profile,
+    List<AdbApp> apps,
+  ) async {
+    final appsByPackageName = {for (final app in apps) app.packageName: app};
+    await Future.wait([
+      for (final entry in profile.apps.entries)
+        if (appsByPackageName[entry.key] case final app?)
+          setBackgroundActivity(deviceSerial, app, entry.value),
     ]);
   }
 
